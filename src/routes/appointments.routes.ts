@@ -16,14 +16,14 @@ appointmentsRouter.get('/', async (request, response) => {
 
 appointmentsRouter.post('/', async (request, response) => {
     try {
-        const { provider, date } = request.body;
+        const { provider_id, date } = request.body;
 
         const parsedDate = parseISO(date);
 
         const createAppointment = new CreateAppointmentService();
 
         const appointment = await createAppointment.execute({
-            provider,
+            provider_id,
             date: parsedDate,
         });
 
@@ -31,6 +31,24 @@ appointmentsRouter.post('/', async (request, response) => {
     } catch (err) {
         return response.status(400).json({ error: err.message });
     }
+});
+
+appointmentsRouter.delete('/', async (request, response) => {
+    const { id } = request.query;
+
+    const appointmentsRepository = getCustomRepository(AppointmentsRepository);
+
+    const appointment = await appointmentsRepository.findOne({
+        where: { id },
+    });
+
+    if (!appointment) {
+        return response.status(200).json({ message: 'Appointment not found' });
+    }
+
+    await appointmentsRepository.remove(appointment);
+
+    return response.send();
 });
 
 export default appointmentsRouter;
